@@ -90,6 +90,7 @@ function initTelegram() {
         
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             tgUser = tg.initDataUnsafe.user;
+            window.tgUser = tgUser;
             
             let playerName = tgUser.first_name || tgUser.username || 'БОЕЦ';
             if (tgUser.last_name) {
@@ -101,6 +102,7 @@ function initTelegram() {
             if (nameSpan) nameSpan.innerText = playerName;
             
             console.log('Telegram пользователь:', tgUser);
+            console.log('Фото пользователя:', tgUser.photo_url);
         } else {
             console.log('Данные пользователя не получены');
         }
@@ -180,6 +182,7 @@ window.updateCollectButton = updateCollectButton;
 
 document.addEventListener('DOMContentLoaded', () => {
     initTelegram();
+    updateAvatars();
 });
 
 window.tg = tg;
@@ -194,8 +197,10 @@ function updateAvatars() {
     if (topAvatar) {
         if (window.tgUser && window.tgUser.photo_url) {
             topAvatar.src = window.tgUser.photo_url;
+            console.log('Верхний аватар обновлён из Telegram:', window.tgUser.photo_url);
         } else {
             topAvatar.src = 'avatar.png';
+            console.log('Верхний аватар: avatar.png');
         }
     }
     
@@ -203,34 +208,18 @@ function updateAvatars() {
     const invAvatar = document.getElementById('playerAvatar');
     if (invAvatar) {
         invAvatar.src = 'avatar.png';
+        console.log('Аватар инвентаря: avatar.png');
     }
-    
-    console.log('Аватары обновлены:', {
-        top: topAvatar?.src,
-        inv: invAvatar?.src
-    });
 }
-
-// Перехватываем инициализацию Telegram
-const originalInitTelegram = initTelegram;
-initTelegram = function() {
-    originalInitTelegram();
-    setTimeout(updateAvatars, 500);
-};
-
-// Также обновляем при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(updateAvatars, 1000);
-});
 
 // Обновляем при переключении на вкладку инвентаря
 const originalUpdateInventoryUI = window.updateInventoryUI;
 if (originalUpdateInventoryUI) {
     window.updateInventoryUI = function() {
         originalUpdateInventoryUI();
-        updateAvatars();
+        setTimeout(updateAvatars, 50);
     };
 }
 
-// Запускаем обновление аватаров сразу
-setTimeout(updateAvatars, 100);
+// Экспортируем функцию
+window.updateAvatars = updateAvatars;
