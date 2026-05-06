@@ -90,7 +90,7 @@ function initTelegram() {
         
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             tgUser = tg.initDataUnsafe.user;
-            window.tgUser = tgUser;
+            window.tgUser = tgUser; // Сохраняем в window для доступа из других функций
             
             let playerName = tgUser.first_name || tgUser.username || 'БОЕЦ';
             if (tgUser.last_name) {
@@ -102,7 +102,7 @@ function initTelegram() {
             if (nameSpan) nameSpan.innerText = playerName;
             
             console.log('Telegram пользователь:', tgUser);
-            console.log('Фото пользователя:', tgUser.photo_url);
+            console.log('photo_url:', tgUser.photo_url);
         } else {
             console.log('Данные пользователя не получены');
         }
@@ -117,6 +117,9 @@ function initTelegram() {
     } else {
         console.log('Telegram Web App не обнаружен');
     }
+    
+    // Обновляем аватары после инициализации
+    setTimeout(updateAvatars, 500);
 }
 
 window.onGameReady = function() {
@@ -180,24 +183,18 @@ function setCurrentTab(tab) {
 window.setCurrentTab = setCurrentTab;
 window.updateCollectButton = updateCollectButton;
 
-document.addEventListener('DOMContentLoaded', () => {
-    initTelegram();
-    updateAvatars();
-});
-
-window.tg = tg;
-window.tgUser = tgUser;
-
 // ============= УПРАВЛЕНИЕ АВАТАРАМИ =============
 
 // Функция для обновления аватаров
 function updateAvatars() {
+    console.log('updateAvatars вызвана');
+    
     // Верхний аватар (берём фото из Telegram)
     const topAvatar = document.getElementById('tgAvatar');
     if (topAvatar) {
         if (window.tgUser && window.tgUser.photo_url) {
             topAvatar.src = window.tgUser.photo_url;
-            console.log('Верхний аватар обновлён из Telegram:', window.tgUser.photo_url);
+            console.log('Верхний аватар: фото из Telegram');
         } else {
             topAvatar.src = 'avatar.png';
             console.log('Верхний аватар: avatar.png');
@@ -212,6 +209,11 @@ function updateAvatars() {
     }
 }
 
+// Запускаем инициализацию Telegram и обновление аватаров
+document.addEventListener('DOMContentLoaded', () => {
+    initTelegram();
+});
+
 // Обновляем при переключении на вкладку инвентаря
 const originalUpdateInventoryUI = window.updateInventoryUI;
 if (originalUpdateInventoryUI) {
@@ -221,5 +223,5 @@ if (originalUpdateInventoryUI) {
     };
 }
 
-// Экспортируем функцию
+// Экспортируем функции
 window.updateAvatars = updateAvatars;
