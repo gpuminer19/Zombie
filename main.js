@@ -88,11 +88,9 @@ function initTelegram() {
         tg.ready();
         tg.expand();
         
-        // Получаем данные пользователя
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             tgUser = tg.initDataUnsafe.user;
             
-            // Обновляем имя игрока
             let playerName = tgUser.first_name || tgUser.username || 'БОЕЦ';
             if (tgUser.last_name) {
                 playerName = tgUser.first_name + ' ' + tgUser.last_name;
@@ -102,40 +100,18 @@ function initTelegram() {
             const nameSpan = document.getElementById('playerName');
             if (nameSpan) nameSpan.innerText = playerName;
             
-            // Обновляем фото профиля
-            if (tgUser.photo_url) {
-                const avatarImg = document.getElementById('playerAvatar');
-                if (avatarImg) {
-                    avatarImg.src = tgUser.photo_url;
-                    avatarImg.style.borderRadius = '50%';
-                    avatarImg.style.objectFit = 'cover';
-                }
-            } else {
-                // Если нет фото, показываем иконку с первой буквой имени
-                const avatar = document.querySelector('.avatar');
-                if (avatar && playerName) {
-                    avatar.innerHTML = `<span style="font-size: 20px;">${playerName.charAt(0).toUpperCase()}</span>`;
-                }
+            // ВЕРХНИЙ АВАТАР (меняем на фото из Telegram)
+            const topAvatar = document.getElementById('tgAvatar');
+            if (topAvatar && tgUser.photo_url) {
+                topAvatar.src = tgUser.photo_url;
+            } else if (topAvatar) {
+                topAvatar.src = 'avatar.png';
             }
             
-            // Также обновляем аватар в инвентаре
-            const invAvatar = document.querySelector('#inventory .character-avatar img');
-            if (invAvatar && tgUser.photo_url) {
-                invAvatar.src = tgUser.photo_url;
-            } else if (invAvatar && playerName) {
-                invAvatar.style.display = 'none';
-                const parent = invAvatar.parentElement;
-                const textAvatar = document.createElement('div');
-                textAvatar.style.width = '100%';
-                textAvatar.style.height = '100%';
-                textAvatar.style.display = 'flex';
-                textAvatar.style.alignItems = 'center';
-                textAvatar.style.justifyContent = 'center';
-                textAvatar.style.fontSize = '36px';
-                textAvatar.style.fontWeight = 'bold';
-                textAvatar.style.color = '#ffd54f';
-                textAvatar.innerText = playerName.charAt(0).toUpperCase();
-                parent.appendChild(textAvatar);
+            // АВАТАР В ИНВЕНТАРЕ (принудительно avatar.png)
+            const invAvatar = document.getElementById('playerAvatar');
+            if (invAvatar) {
+                invAvatar.src = 'avatar.png';
             }
             
             console.log('Telegram пользователь:', tgUser);
