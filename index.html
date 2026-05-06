@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Shooter Idle</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="bg"></div>
+
+<div class="topbar">
+    <div class="player">
+        <div class="avatar"><i class="fa-solid fa-user"></i></div>
+        <div class="player-info">
+            <div class="player-name" id="playerName">БОЕЦ</div>
+            <div class="lvl">
+                УРОВЕНЬ <span id="playerLevel">1</span>
+                <div class="progress-bar"><div class="progress-fill" id="expProgress" style="width: 0%"></div></div>
+            </div>
+            <div class="power">⚡ БМ: <span id="playerPower">0</span></div>
+        </div>
+    </div>
+    <div class="currency">
+        <div><i class="fa-solid fa-coins"></i> <span id="uiCoins">0</span></div>
+    </div>
+</div>
+    <div class="currency">
+        <div><i class="fa-solid fa-coins"></i> <span id="uiCoins">0</span></div>
+        <div><i class="fa-solid fa-gem"></i> <span id="uiGems">50</span></div>
+    </div>
+</div>
+
+<div class="center">
+    <div class="wave" id="floorInfo">🏢 ЭТАЖ 1</div>
+    <div class="wave-required" id="floorRequired">🎯 ДЛЯ ПЕРЕХОДА НУЖНО: 500 БМ</div>
+    
+    <div class="floor-buttons-top">
+        <div class="floor-btn" id="prevFloorBtn"><i class="fa-solid fa-arrow-left"></i><span>НИЖЕ</span></div>
+        <div class="floor-btn" id="nextFloorBtn"><span>ВЫШЕ</span><i class="fa-solid fa-arrow-right"></i></div>
+    </div>
+</div>
+
+<div class="game-window">
+    <div id="game"></div>
+    <div class="fog-overlay"></div>
+    <button class="boss-exit-btn" id="bossExitBtn" style="display: none;">
+        <i class="fa-solid fa-door-open"></i> ВЫЙТИ
+    </button>
+</div>
+
+<!-- Модальное окно подтверждения выхода из боя с боссом -->
+<div id="confirmModal" style="display: none;">
+    <div class="confirm-overlay"></div>
+    <div class="confirm-window">
+        <div class="confirm-header">
+            <i class="fa-solid fa-triangle-exclamation"></i> ПОДТВЕРЖДЕНИЕ
+        </div>
+        <div class="confirm-content" id="confirmMessage">
+            Вы уверены, что хотите выйти из боя с боссом?
+        </div>
+        <div class="confirm-buttons">
+            <button id="confirmNoBtn" class="confirm-btn no">ОТМЕНА</button>
+            <button id="confirmYesBtn" class="confirm-btn yes">ВЫЙТИ</button>
+        </div>
+    </div>
+</div>
+
+<!-- ЧАТ И КНОПКА СБОРА В ОДНОМ РЯДУ -->
+<div class="bottom-buttons-container">
+    <div class="last-message-button" id="chatTriggerButton">
+        <div class="last-message-icon">💬</div>
+        <div class="last-message-info">
+            <div class="last-message-label">ПОСЛЕДНЕЕ СООБЩЕНИЕ</div>
+            <div class="last-message-text" id="lastMessagePreview">
+                <span class="last-msg-name"></span>
+                <span class="last-msg-content">Добро пожаловать!</span>
+            </div>
+        </div>
+    </div>
+    
+    <button class="collect-coins-btn" id="collectCoinsBtn" style="display: none;">
+        <i class="fa-solid fa-coins"></i> ЗАБРАТЬ <span id="collectCoinsAmount">0</span>
+    </button>
+</div>
+
+<div class="chat-window-popup" id="chatPopup">
+    <div class="chat-popup-header">
+        <span><i class="fa-solid fa-comments"></i> МИРОВОЙ ЧАТ</span>
+        <button id="chatPopupCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="chat-popup-messages" id="chatPopupMessages">
+        <div class="chat-msg system">💬 Добро пожаловать в чат!</div>
+        <div class="chat-msg system">💬 Пишите сообщения, они видны всем</div>
+    </div>
+    <div class="chat-popup-input-area">
+        <input type="text" id="chatPopupInput" placeholder="Введите сообщение..." maxlength="100">
+        <button id="chatPopupSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<div id="inventory" class="panel">
+    <div class="inventory-layout">
+        <div class="character-col">
+            <div class="character-avatar"><img id="playerAvatar" src="avatar.png" alt="player" onerror="this.src='https://via.placeholder.com/100?text=🎮'"></div>
+            <div class="character-stats">
+                <div class="stat-row"><i class="fa-solid fa-bolt"></i><span class="stat-label">АТАКА</span><span class="stat-value" id="statDamageValue">10</span></div>
+                <div class="stat-row"><i class="fa-solid fa-gauge-high"></i><span class="stat-label">СКОРОСТЬ</span><span class="stat-value" id="statSpeedValue">1.0</span></div>
+                <div class="stat-row"><i class="fa-solid fa-burst"></i><span class="stat-label">КРИТ УРОН</span><span class="stat-value" id="statCritDamageValue">0%</span></div>
+                <div class="stat-row"><i class="fa-solid fa-dice-d6"></i><span class="stat-label">КРИТ ШАНС</span><span class="stat-value" id="statCritChanceValue">0%</span></div>
+            </div>
+        </div>
+        <div class="slots-col">
+            <div class="slots-title">⚔️ ЭКИПИРОВКА</div>
+            <div class="slots-grid">
+                <div class="slot" data-type="weapon"><i class="fa-solid fa-gun"></i><span>ОРУЖИЕ</span></div>
+                <div class="slot" data-type="sight"><i class="fa-solid fa-crosshairs"></i><span>ПРИЦЕЛ</span></div>
+                <div class="slot" data-type="laser"><i class="fa-solid fa-lightbulb"></i><span>ЛАЗЕР</span></div>
+                <div class="slot" data-type="magazine"><i class="fa-solid fa-drumstick-bite"></i><span>МАГАЗИН</span></div>
+                <div class="slot" data-type="silencer"><i class="fa-solid fa-volume-off"></i><span>ГЛУШИТЕЛЬ</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="inventory-title">📦 ИНВЕНТАРЬ</div>
+    <div id="invGrid"></div>
+</div>
+
+<div id="shop" class="panel">
+    <div class="shop-categories" id="shopCategories">
+        <button class="shop-cat active" data-cat="all">🏪 ВСЁ</button>
+        <button class="shop-cat" data-cat="weapon">🔫 ОРУЖИЕ</button>
+        <button class="shop-cat" data-cat="module">🔧 МОДУЛИ</button>
+    </div>
+    <div id="shopItems" class="shop-items"></div>
+</div>
+
+<div id="market" class="panel">
+    <h3>🏪 РЫНОК</h3>
+    <div id="marketItems" class="market-items"></div>
+    <div class="market-hint">💡 Выставляйте предметы через инвентарь</div>
+</div>
+
+<div id="boss" class="panel">
+    <div class="boss-header">
+        <h3><i class="fa-solid fa-dragon"></i>БОССЫ <i class="fa-solid fa-skull"></i></h3>
+        <div class="boss-info">
+            <div class="boss-info-item">
+                <i class="fa-solid fa-clock"></i> Сражайтесь раз в день!
+            </div>
+            <div class="boss-info-item">
+                <i class="fa-solid fa-chart-line"></i> Чем выше уровень - тем лучше награда!
+            </div>
+        </div>
+    </div>
+    <div id="bossList" class="boss-list-container"></div>
+</div>
+
+<div id="wallet" class="panel">
+    <h3>💰 КОШЕЛЁК</h3>
+    <div class="dev-placeholder">В разработке</div>
+</div>
+
+<div id="modalOverlay" onclick="closeItem()"></div>
+<div id="itemModal">
+    <div id="itemInfo"></div>
+    <div class="modal-buttons">
+        <button id="equipBtn">⚡ НАДЕТЬ</button>
+        <button id="unequipBtn" style="display:none;">❌ СНЯТЬ</button>
+        <button id="upgradeBtn" style="display:none;">🔧 УЛУЧШИТЬ</button>
+        <button id="sellOnMarketBtn" style="display:none;">🏪 НА РЫНОК</button>
+        <button id="sellBtn" style="display:none;">💰 ПРОДАТЬ</button>
+        <button id="closeModalBtn">🔒 ЗАКРЫТЬ</button>
+    </div>
+</div>
+
+<div class="nav">
+    <button class="nav-item active" data-tab="game"><i class="fa-solid fa-crosshairs"></i>БОЙ</button>
+    <button class="nav-item" data-tab="inventory"><i class="fa-solid fa-gun"></i>ОРУЖИЕ</button>
+    <button class="nav-item" data-tab="shop"><i class="fa-solid fa-store"></i>МАГАЗИН</button>
+    <button class="nav-item" data-tab="market"><i class="fa-solid fa-chart-line"></i>РЫНОК</button>
+    <button class="nav-item" data-tab="boss"><i class="fa-solid fa-dragon"></i>БОСС</button>
+</div>
+
+<script src="items.js"></script>
+<script src="game.js"></script>
+<script src="utils.js"></script>
+<script src="upgrade.js"></script>
+<script src="inventory.js"></script>
+<script src="shop.js"></script>
+<script src="market.js"></script>
+<script src="chat.js"></script>
+<script src="boss.js"></script>
+<script src="main.js"></script>
+
+<script>
+document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const tab = btn.dataset.tab;
+        if (!tab) return;
+        
+        // Обновляем текущую вкладку в main.js
+        if (typeof window.setCurrentTab === 'function') {
+            window.setCurrentTab(tab);
+        }
+        
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        if (tab !== 'game') {
+            const targetPanel = document.getElementById(tab);
+            if (targetPanel) targetPanel.classList.add('active');
+        }
+        btn.classList.add('active');
+        if (tab === 'inventory' && typeof updateInventoryUI === 'function') { updateInventoryUI(); updateSlots(); }
+        if (tab === 'shop' && typeof renderShop === 'function') renderShop();
+        if (tab === 'market' && typeof renderMarket === 'function') renderMarket();
+        if (tab === 'boss' && typeof renderBossUI === 'function') renderBossUI();
+        
+        const chatPopup = document.getElementById('chatPopup');
+        const container = document.querySelector('.bottom-buttons-container');
+        
+        if (tab === 'game') {
+            if (container) container.style.display = 'flex';
+            // Вызываем обновление кнопки сбора
+            if (typeof window.updateCollectButton === 'function') {
+                setTimeout(function() {
+                    window.updateCollectButton();
+                }, 10);
+            }
+            if (chatPopup && chatPopup.classList.contains('open')) {
+                // оставляем открытым если нужно
+            }
+        } else {
+            if (container) container.style.display = 'none';
+            if (chatPopup && chatPopup.classList.contains('open')) {
+                chatPopup.classList.remove('open');
+            }
+        }
+    });
+});
+
+function updateStatsUI() {
+    if (!window.gameState) return;
+    const coinsSpan = document.getElementById('uiCoins');
+    if (coinsSpan) coinsSpan.innerText = window.gameState.coins?.toFixed?.(4) || window.gameState.coins || 0;
+    const levelSpan = document.getElementById('playerLevel');
+    if (levelSpan && window.gameAPI && window.gameAPI.getPlayerLevel) {
+        levelSpan.innerText = window.gameAPI.getPlayerLevel().level;
+    }
+    const expFill = document.getElementById('expProgress');
+    if (expFill && window.gameAPI && window.gameAPI.getPlayerLevel) {
+        const data = window.gameAPI.getPlayerLevel();
+        const percent = (data.exp / data.nextExp) * 100;
+        expFill.style.width = Math.min(100, percent) + '%';
+    }
+    if (window.gameAPI && window.gameAPI.getPower) {
+        const powerSpan = document.getElementById('playerPower');
+        if (powerSpan) powerSpan.innerText = window.gameAPI.getPower().toLocaleString();
+    }
+}
+
+window.updateStats = updateStatsUI;
+setInterval(updateStatsUI, 100);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const collectBtn = document.getElementById('collectCoinsBtn');
+    if (collectBtn) {
+        collectBtn.addEventListener('click', function() {
+            if (typeof window.collectCoins === 'function') {
+                window.collectCoins();
+            }
+        });
+    }
+});
+</script>
+    
+</body>
+</html>
