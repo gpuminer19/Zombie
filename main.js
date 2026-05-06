@@ -100,20 +100,6 @@ function initTelegram() {
             const nameSpan = document.getElementById('playerName');
             if (nameSpan) nameSpan.innerText = playerName;
             
-            // ВЕРХНИЙ АВАТАР (меняем на фото из Telegram)
-            const topAvatar = document.getElementById('tgAvatar');
-            if (topAvatar && tgUser.photo_url) {
-                topAvatar.src = tgUser.photo_url;
-            } else if (topAvatar) {
-                topAvatar.src = 'avatar.png';
-            }
-            
-            // АВАТАР В ИНВЕНТАРЕ (принудительно avatar.png)
-            const invAvatar = document.getElementById('playerAvatar');
-            if (invAvatar) {
-                invAvatar.src = 'avatar.png';
-            }
-            
             console.log('Telegram пользователь:', tgUser);
         } else {
             console.log('Данные пользователя не получены');
@@ -198,3 +184,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.tg = tg;
 window.tgUser = tgUser;
+
+// ============= УПРАВЛЕНИЕ АВАТАРАМИ =============
+
+// Функция для обновления аватаров
+function updateAvatars() {
+    // Верхний аватар (берём фото из Telegram)
+    const topAvatar = document.getElementById('tgAvatar');
+    if (topAvatar) {
+        if (window.tgUser && window.tgUser.photo_url) {
+            topAvatar.src = window.tgUser.photo_url;
+        } else {
+            topAvatar.src = 'avatar.png';
+        }
+    }
+    
+    // Аватар в инвентаре (всегда avatar.png)
+    const invAvatar = document.getElementById('playerAvatar');
+    if (invAvatar) {
+        invAvatar.src = 'avatar.png';
+    }
+    
+    console.log('Аватары обновлены:', {
+        top: topAvatar?.src,
+        inv: invAvatar?.src
+    });
+}
+
+// Перехватываем инициализацию Telegram
+const originalInitTelegram = initTelegram;
+initTelegram = function() {
+    originalInitTelegram();
+    setTimeout(updateAvatars, 500);
+};
+
+// Также обновляем при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(updateAvatars, 1000);
+});
+
+// Обновляем при переключении на вкладку инвентаря
+const originalUpdateInventoryUI = window.updateInventoryUI;
+if (originalUpdateInventoryUI) {
+    window.updateInventoryUI = function() {
+        originalUpdateInventoryUI();
+        updateAvatars();
+    };
+}
+
+// Запускаем обновление аватаров сразу
+setTimeout(updateAvatars, 100);
