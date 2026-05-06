@@ -18,11 +18,9 @@
 
 <div class="topbar">
     <div class="player">
-    <div class="avatar">
-    <img id="tgAvatar" src="avatar.png" style="width: 100%; height: 100%; border-radius: 14px; object-fit: cover;">
-    <i class="fa-solid fa-user" style="display: none; position: absolute;"></i>
-</div>
-</div>
+        <div class="avatar">
+            <img id="tgAvatar" src="avatar.png" style="width: 100%; height: 100%; border-radius: 14px; object-fit: cover;">
+        </div>
         <div class="player-info">
             <div class="player-name" id="playerName">БОЕЦ</div>
             <div class="lvl">
@@ -34,11 +32,6 @@
     </div>
     <div class="currency">
         <div><i class="fa-solid fa-coins"></i> <span id="uiCoins">0</span></div>
-    </div>
-</div>
-    <div class="currency">
-        <div><i class="fa-solid fa-coins"></i> <span id="uiCoins">0</span></div>
-        <div><i class="fa-solid fa-gem"></i> <span id="uiGems">50</span></div>
     </div>
 </div>
 
@@ -113,7 +106,9 @@
 <div id="inventory" class="panel">
     <div class="inventory-layout">
         <div class="character-col">
-            <div class="character-avatar"><img id="playerAvatar" src="avatar.png" alt="player" onerror="this.src='https://via.placeholder.com/100?text=🎮'"></div>
+            <div class="character-avatar">
+                <img id="playerAvatar" src="avatar.png" alt="player" style="width: 100%; height: 100%; object-fit: cover; border-radius: 20px;">
+            </div>
             <div class="character-stats">
                 <div class="stat-row"><i class="fa-solid fa-bolt"></i><span class="stat-label">АТАКА</span><span class="stat-value" id="statDamageValue">10</span></div>
                 <div class="stat-row"><i class="fa-solid fa-gauge-high"></i><span class="stat-label">СКОРОСТЬ</span><span class="stat-value" id="statSpeedValue">1.0</span></div>
@@ -124,30 +119,27 @@
         <div class="slots-col">
             <div class="slots-title">⚔️ ЭКИПИРОВКА</div>
             <div class="slots-grid">
-                
-                 </div>
-          <div class="slots-grid">
-    <div class="slot" data-type="weapon">
-        <img src="1.png" alt="weapon"  style="opacity: 0.3;">
-        <span>ОРУЖИЕ</span>
-    </div>
-    <div class="slot" data-type="sight">
-        <img src="ak1.png" alt="sight" class="slot-icon" style="opacity: 0.3;">
-        <span>ПРИЦЕЛ</span>
-    </div>
-    <div class="slot" data-type="laser">
-        <img src="ak2.png" alt="laser" class="slot-icon" style="opacity: 0.3;">
-        <span>ЛАЗЕР</span>
-    </div>
-    <div class="slot" data-type="magazine">
-        <img src="ak3.png" alt="magazine" class="slot-icon" style="opacity: 0.3;">
-        <span>МАГАЗИН</span>
-    </div>
-    <div class="slot" data-type="silencer">
-        <img src="ak4.png" alt="silencer" class="slot-icon" style="opacity: 0.3;">
-        <span>ГЛУШИТЕЛЬ</span>
-    </div>
-</div>
+                <div class="slot" data-type="weapon">
+                    <img src="1.png" style="width: 45px; height: 45px; object-fit: contain; opacity: 0.4;">
+                    <span>ОРУЖИЕ</span>
+                </div>
+                <div class="slot" data-type="sight">
+                    <img src="ak1.png" style="width: 45px; height: 45px; object-fit: contain; opacity: 0.4;">
+                    <span>ПРИЦЕЛ</span>
+                </div>
+                <div class="slot" data-type="laser">
+                    <img src="ak2.png" style="width: 45px; height: 45px; object-fit: contain; opacity: 0.4;">
+                    <span>ЛАЗЕР</span>
+                </div>
+                <div class="slot" data-type="magazine">
+                    <img src="ak3.png" style="width: 45px; height: 45px; object-fit: contain; opacity: 0.4;">
+                    <span>МАГАЗИН</span>
+                </div>
+                <div class="slot" data-type="silencer">
+                    <img src="ak4.png" style="width: 45px; height: 45px; object-fit: contain; opacity: 0.4;">
+                    <span>ГЛУШИТЕЛЬ</span>
+                </div>
+            </div>
         </div>
     </div>
     <div class="inventory-title">📦 ИНВЕНТАРЬ</div>
@@ -171,7 +163,7 @@
 
 <div id="boss" class="panel">
     <div class="boss-header">
-        <h3><i class="fa-solid fa-dragon"></i>БОССЫ <i class="fa-solid fa-skull"></i></h3>
+        <h3><i class="fa-solid fa-dragon"></i> ПОВЕЛИТЕЛИ БОССЫ <i class="fa-solid fa-skull"></i></h3>
         <div class="boss-info">
             <div class="boss-info-item">
                 <i class="fa-solid fa-clock"></i> Сражайтесь раз в день!
@@ -227,7 +219,6 @@ document.querySelectorAll('.nav-item').forEach(btn => {
         const tab = btn.dataset.tab;
         if (!tab) return;
         
-        // Обновляем текущую вкладку в main.js
         if (typeof window.setCurrentTab === 'function') {
             window.setCurrentTab(tab);
         }
@@ -249,14 +240,10 @@ document.querySelectorAll('.nav-item').forEach(btn => {
         
         if (tab === 'game') {
             if (container) container.style.display = 'flex';
-            // Вызываем обновление кнопки сбора
             if (typeof window.updateCollectButton === 'function') {
                 setTimeout(function() {
                     window.updateCollectButton();
                 }, 10);
-            }
-            if (chatPopup && chatPopup.classList.contains('open')) {
-                // оставляем открытым если нужно
             }
         } else {
             if (container) container.style.display = 'none';
