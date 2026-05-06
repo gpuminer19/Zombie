@@ -28,6 +28,7 @@ let floorMultiplier = 1.0;
 let currentFloor = 1;
 let requiredBMForNextFloor = 500;
 let currentBM = 0;
+let bgImage = null; // Статичный фон
 
 // Система уровней
 let playerLevel = 1;
@@ -53,7 +54,6 @@ let bossMonster = null;
 
 // Тени
 let playerShadow = null;
-let bgVideo = null;
 
 // Игровые параметры
 window.gameState = {
@@ -93,7 +93,9 @@ function preload() {
     this.load.spritesheet('boss_attack', 'bosssatk.png', { frameWidth: 128, frameHeight: 127 });
     
     this.load.image('arrow', 'https://labs.phaser.io/assets/sprites/bullets/bullet7.png');
-    this.load.video('fon', 'fon.mp4');
+    
+    // Статичный фон
+    this.load.image('fon', 'fon.png');
 }
 
 function create() {
@@ -102,29 +104,26 @@ function create() {
   
   loadFloorProgress();
 
-  // ========== ВИДЕО-ФОН ==========
-  bgVideo = this.add.video(0, 0, 'fon');
-  bgVideo.setOrigin(0.5, 0.5);
-  bgVideo.setDepth(-999);
-  bgVideo.setMute(true);
-  bgVideo.setLoop(true);
+  // ========== СТАТИЧНЫЙ ФОН ==========
+  bgImage = this.add.image(0, 0, 'fon');
+  bgImage.setOrigin(0.5, 0.5);
+  bgImage.setDepth(-999);
   
-  const resizeBgVideo = () => {
-    if (!bgVideo || !bgVideo.video) return;
-    const scaleX = this.scale.width / bgVideo.video.videoWidth;
-    const scaleY = this.scale.height / bgVideo.video.videoHeight;
+  const resizeBgImage = () => {
+    if (!bgImage) return;
+    const scaleX = this.scale.width / bgImage.width;
+    const scaleY = this.scale.height / bgImage.height;
     const scale = Math.max(scaleX, scaleY);
-    bgVideo.setScale(scale);
-    bgVideo.x = this.scale.width / 2;
-    bgVideo.y = this.scale.height / 2;
+    bgImage.setScale(scale);
+    bgImage.x = this.scale.width / 2;
+    bgImage.y = this.scale.height / 2;
   };
   
-  bgVideo.play(true);
-  bgVideo.on('loadeddata', resizeBgVideo);
-  setTimeout(resizeBgVideo, 100);
+  setTimeout(resizeBgImage, 100);
+  resizeBgImage();
   
   this.scale.on('resize', () => {
-    resizeBgVideo();
+    resizeBgImage();
     laneY = this.scale.height - 40;
     if (player) player.y = laneY;
     if (playerShadow) playerShadow.y = laneY + 5;
@@ -228,8 +227,6 @@ function create() {
 
 // Функция для получения типа монстра в зависимости от этажа
 function getMonsterType() {
-  // Этажи 1-4 - первый монстр
-  // Этажи 5+ - второй монстр
   return currentFloor >= 5 ? 2 : 1;
 }
 
@@ -629,7 +626,6 @@ function spawnMonster() {
   const monsterType = getMonsterType();
   const isMonster2 = monsterType === 2;
   
-  // Выбираем спрайт и анимацию в зависимости от типа монстра
   const textureKey = isMonster2 ? 'monster2' : 'monster';
   const walkAnim = isMonster2 ? 'monster_walk2' : 'monster_walk';
   
@@ -647,7 +643,7 @@ function spawnMonster() {
   monster.lastAttackTime = 0;
   monster.isWaiting = false;
   monster.isBoss = false;
-  monster.monsterType = monsterType; // запоминаем тип для атаки
+  monster.monsterType = monsterType;
   monster.setScale(1);
   monster.body.setSize(50, 60);
   monster.body.setOffset(23, 36);
@@ -689,7 +685,6 @@ function spawnBoss(boss) {
   const scene = this;
   const laneY = scene.scale.height - 40;
   
-  // Создаём босса с анимацией
   bossMonster = monsters.create(scene.scale.width, laneY, 'boss_idle');
   bossMonster.setOrigin(0.5, 1);
   bossMonster.setVelocityX(-boss.speed);
@@ -797,7 +792,6 @@ function hitMonster(arrow, monster) {
       
       addExp(10);
       
-      // Награда увеличивается каждые 5 этажей
       const floorTier = Math.ceil(currentFloor / 5);
       const reward = floorTier * 0.001;
       
@@ -807,7 +801,6 @@ function hitMonster(arrow, monster) {
       
       if (window.onMonsterKilled) window.onMonsterKilled();
       
-      // Эффект взрыва/крови
       for(let i = 0; i < 8; i++) {
         const particle = this.add.circle(monster.x, monster.y, 3, 0xff4444);
         this.tweens.add({
@@ -829,14 +822,12 @@ function hitMonster(arrow, monster) {
 function monsterAttackPlayer(player, monster) {
   if (isPlayerDead) return;
   
-  // Используем разные задержки атаки для обычных монстров и босса
   const attackDelay = monster.isBoss ? BOSS_ATTACK_DELAY : MONSTER_ATTACK_DELAY;
   const currentTime = Date.now();
   
   if (currentTime - monster.lastAttackTime >= attackDelay) {
     monster.lastAttackTime = currentTime;
     
-    // Воспроизводим анимацию атаки в зависимости от типа монстра
     if (monster.isBoss) {
       monster.play('boss_attack_anim');
     } else {
@@ -844,7 +835,6 @@ function monsterAttackPlayer(player, monster) {
       monster.play(attackAnim);
     }
     
-    // Покраснение персонажа
     player.setTint(0xff8888);
     this.time.delayedCall(150, () => { 
       if (player.active) player.clearTint(); 
@@ -869,7 +859,6 @@ function updateStats() {
   updateFloorUI();
 }
 
-// ============= КНОПКА ВЫХОДА =============
 function showBossExitBtn() {
   const btn = document.getElementById('bossExitBtn');
   if (btn) {
@@ -1075,8 +1064,6 @@ window.gameAPI = {
     addExp(amount);
   }
 };
-
-
 
 document.addEventListener('DOMContentLoaded', () => {
   const prevBtn = document.getElementById('prevFloorBtn');
