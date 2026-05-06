@@ -112,10 +112,32 @@ function updateSlots() {
                     openItem(item);
                 };
             } else {
-                const icons = { weapon: 'fa-gun', sight: 'fa-crosshairs', laser: 'fa-lightbulb', magazine: 'fa-drumstick-bite', silencer: 'fa-volume-off' };
+                // ПУСТОЙ СЛОТ - ВАШИ ЗАТЕМНЁННЫЕ ИКОНКИ
+                const icons = { 
+                    weapon: '1.png', 
+                    sight: 'ak1.png', 
+                    laser: 'ak2.png', 
+                    magazine: 'ak3.png', 
+                    silencer: 'ak4.png' 
+                };
                 const names = { weapon: 'ОРУЖИЕ', sight: 'ПРИЦЕЛ', laser: 'ЛАЗЕР', magazine: 'МАГАЗИН', silencer: 'ГЛУШИТЕЛЬ' };
-                slot.innerHTML = `<i class="fa-solid ${icons[slotType]}" style="font-size: 24px;"></i><span>${names[slotType]}</span>`;
-                slot.style.opacity = "0.4";
+                
+                const img = document.createElement('img');
+                img.src = icons[slotType];
+                img.style.width = '45px';
+                img.style.height = '45px';
+                img.style.objectFit = 'contain';
+                img.style.opacity = '0.3';
+                img.style.marginBottom = '5px';
+                slot.appendChild(img);
+                
+                const span = document.createElement('span');
+                span.innerText = names[slotType];
+                span.style.fontSize = '8px';
+                span.style.color = '#777';
+                slot.appendChild(span);
+                
+                slot.style.opacity = "1";
                 slot.style.border = "2px solid #333";
                 slot.style.boxShadow = "none";
                 slot.style.background = '#1c1c1e';

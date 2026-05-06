@@ -18,7 +18,10 @@
 
 <div class="topbar">
     <div class="player">
-        <div class="avatar"><i class="fa-solid fa-user"></i></div>
+      <div class="avatar">
+    <img id="tgAvatar" src="avatar.png" style="width: 100%; height: 100%; border-radius: 14px; object-fit: cover;" onerror="this.style.display='none'; this.nextSibling.style.display='flex';">
+    <i class="fa-solid fa-user" style="display: none; position: absolute;"></i>
+</div>
         <div class="player-info">
             <div class="player-name" id="playerName">БОЕЦ</div>
             <div class="lvl">
@@ -120,12 +123,30 @@
         <div class="slots-col">
             <div class="slots-title">⚔️ ЭКИПИРОВКА</div>
             <div class="slots-grid">
-                <div class="slot" data-type="weapon"><i class="fa-solid fa-gun"></i><span>ОРУЖИЕ</span></div>
-                <div class="slot" data-type="sight"><i class="fa-solid fa-crosshairs"></i><span>ПРИЦЕЛ</span></div>
-                <div class="slot" data-type="laser"><i class="fa-solid fa-lightbulb"></i><span>ЛАЗЕР</span></div>
-                <div class="slot" data-type="magazine"><i class="fa-solid fa-drumstick-bite"></i><span>МАГАЗИН</span></div>
-                <div class="slot" data-type="silencer"><i class="fa-solid fa-volume-off"></i><span>ГЛУШИТЕЛЬ</span></div>
-            </div>
+                
+                 </div>
+          <div class="slots-grid">
+    <div class="slot" data-type="weapon">
+        <img src="1.png" alt="weapon"  style="opacity: 0.3;">
+        <span>ОРУЖИЕ</span>
+    </div>
+    <div class="slot" data-type="sight">
+        <img src="ak1.png" alt="sight" class="slot-icon" style="opacity: 0.3;">
+        <span>ПРИЦЕЛ</span>
+    </div>
+    <div class="slot" data-type="laser">
+        <img src="ak2.png" alt="laser" class="slot-icon" style="opacity: 0.3;">
+        <span>ЛАЗЕР</span>
+    </div>
+    <div class="slot" data-type="magazine">
+        <img src="ak3.png" alt="magazine" class="slot-icon" style="opacity: 0.3;">
+        <span>МАГАЗИН</span>
+    </div>
+    <div class="slot" data-type="silencer">
+        <img src="ak4.png" alt="silencer" class="slot-icon" style="opacity: 0.3;">
+        <span>ГЛУШИТЕЛЬ</span>
+    </div>
+</div>
         </div>
     </div>
     <div class="inventory-title">📦 ИНВЕНТАРЬ</div>

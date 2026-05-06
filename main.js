@@ -5,6 +5,7 @@ let tempCoins = 0;
 
 // Telegram Web App
 let tg = null;
+let tgUser = null;
 
 // Функция добавления монет во временное хранилище
 function addTempCoins(amount) {
@@ -21,11 +22,10 @@ function updateCollectButton() {
     if (btn && amountSpan) {
         amountSpan.innerText = tempCoins.toFixed(3);
         
-        // Проверяем, активна ли сейчас вкладка игры
         const currentTab = document.querySelector('.nav-item.active')?.dataset.tab;
         
         if (currentTab === 'game') {
-            btn.style.display = 'flex'; // Всегда показываем на вкладке игры
+            btn.style.display = 'flex';
             btn.style.opacity = tempCoins > 0 ? '1' : '0.5';
             btn.disabled = tempCoins <= 0;
         } else {
@@ -41,20 +41,16 @@ function collectCoins() {
         return;
     }
     
-    // Добавляем в основной баланс
     window.gameState.coins += tempCoins;
     
-    // Обновляем отображение
     const coinsSpan = document.getElementById('uiCoins');
     if (coinsSpan) coinsSpan.innerText = window.gameState.coins.toFixed(3);
     if (window.coinText) window.coinText.setText('💰 ' + window.gameState.coins.toFixed(3));
     
     showToast(`💰 Вы собрали ${tempCoins.toFixed(3)} монет!`);
     
-    // Очищаем временное хранилище
     tempCoins = 0;
     
-    // Обновляем кнопку (она покажет 0 и станет неактивной, но не исчезнет)
     const btn = document.getElementById('collectCoinsBtn');
     const amountSpan = document.getElementById('collectCoinsAmount');
     
@@ -85,22 +81,77 @@ function updateLocationUI() {
     });
 }
 
-// Инициализация Telegram Web App
+// Инициализация Telegram Web App и получение данных пользователя
 function initTelegram() {
     if (window.Telegram && window.Telegram.WebApp) {
         tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); // Разворачивает на весь экран
+        tg.expand();
         
-        // Устанавливаем цвет фона под тему Telegram
+        // Получаем данные пользователя
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            tgUser = tg.initDataUnsafe.user;
+            
+            // Обновляем имя игрока
+            let playerName = tgUser.first_name || tgUser.username || 'БОЕЦ';
+            if (tgUser.last_name) {
+                playerName = tgUser.first_name + ' ' + tgUser.last_name;
+            }
+            localStorage.setItem('playerName', playerName);
+            
+            const nameSpan = document.getElementById('playerName');
+            if (nameSpan) nameSpan.innerText = playerName;
+            
+            // Обновляем фото профиля
+            if (tgUser.photo_url) {
+                const avatarImg = document.getElementById('playerAvatar');
+                if (avatarImg) {
+                    avatarImg.src = tgUser.photo_url;
+                    avatarImg.style.borderRadius = '50%';
+                    avatarImg.style.objectFit = 'cover';
+                }
+            } else {
+                // Если нет фото, показываем иконку с первой буквой имени
+                const avatar = document.querySelector('.avatar');
+                if (avatar && playerName) {
+                    avatar.innerHTML = `<span style="font-size: 20px;">${playerName.charAt(0).toUpperCase()}</span>`;
+                }
+            }
+            
+            // Также обновляем аватар в инвентаре
+            const invAvatar = document.querySelector('#inventory .character-avatar img');
+            if (invAvatar && tgUser.photo_url) {
+                invAvatar.src = tgUser.photo_url;
+            } else if (invAvatar && playerName) {
+                invAvatar.style.display = 'none';
+                const parent = invAvatar.parentElement;
+                const textAvatar = document.createElement('div');
+                textAvatar.style.width = '100%';
+                textAvatar.style.height = '100%';
+                textAvatar.style.display = 'flex';
+                textAvatar.style.alignItems = 'center';
+                textAvatar.style.justifyContent = 'center';
+                textAvatar.style.fontSize = '36px';
+                textAvatar.style.fontWeight = 'bold';
+                textAvatar.style.color = '#ffd54f';
+                textAvatar.innerText = playerName.charAt(0).toUpperCase();
+                parent.appendChild(textAvatar);
+            }
+            
+            console.log('Telegram пользователь:', tgUser);
+        } else {
+            console.log('Данные пользователя не получены');
+        }
+        
         if (tg.themeParams.bg_color) {
             document.body.style.backgroundColor = tg.themeParams.bg_color;
         }
         
-        // Показываем кнопку "Назад" если нужно
         tg.BackButton.hide();
         
         console.log("Telegram Web App инициализирован");
+    } else {
+        console.log('Telegram Web App не обнаружен');
     }
 }
 
@@ -125,11 +176,9 @@ window.onMonsterKilled = function() { updateLocationUI(); };
 window.onDropItem = function() { dropItem(); };
 window.onLocationChanged = function() { updateLocationUI(); };
 
-// Экспортируем функции для game.js
 window.addTempCoins = addTempCoins;
 window.collectCoins = collectCoins;
 
-// Показываем уведомления
 function showToast(message, isError = false) {
     const toast = document.createElement('div');
     toast.innerText = message;
@@ -156,7 +205,6 @@ function showToast(message, isError = false) {
 
 window.showToast = showToast;
 
-// Функция для обновления кнопки при переключении вкладок
 function setCurrentTab(tab) {
     if (tab === 'game') {
         setTimeout(function() {
@@ -165,14 +213,12 @@ function setCurrentTab(tab) {
     }
 }
 
-// Экспортируем функции для доступа из index.html
 window.setCurrentTab = setCurrentTab;
 window.updateCollectButton = updateCollectButton;
 
-// Инициализация Telegram при загрузке
 document.addEventListener('DOMContentLoaded', () => {
     initTelegram();
 });
 
-// Экспортируем tg для других файлов
 window.tg = tg;
+window.tgUser = tgUser;

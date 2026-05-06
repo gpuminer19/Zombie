@@ -22,15 +22,21 @@ body {
     z-index: -2;
 }
 
-/* ВИДЕО-ФОН ДЛЯ ВСЕЙ СТРАНИЦЫ */
-.bg-video {
+/* Фоновое изображение */
+body::before {
+    content: '';
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    background-image: url('fon.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.15;
     z-index: -1;
+    pointer-events: none;
 }
 
 /* ИГРОВОЕ ОКНО */
@@ -78,7 +84,7 @@ body {
     100% { opacity: 0.4; }
 }
 
-/* Кнопка сбора монет - справа от чата */
+/* Кнопка сбора монет */
 .collect-coins-btn {
     background: linear-gradient(135deg, #ffd54f, #ff9800);
     border: none;
@@ -99,6 +105,16 @@ body {
 
 .collect-coins-btn:active {
     transform: scale(0.95);
+}
+
+.collect-coins-btn:disabled {
+    cursor: not-allowed;
+    transform: none;
+    opacity: 0.5;
+}
+
+.collect-coins-btn:disabled:active {
+    transform: none;
 }
 
 .collect-coins-btn span {
@@ -176,7 +192,12 @@ body {
 .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ffd54f, #ff9800); border-radius: 10px; transition: width 0.3s ease; }
 .power { font-size: 9px; color: #ffd54f; margin-top: 4px; }
 
-.currency { display: flex; gap: 10px; }
+.currency { 
+    display: flex; 
+    gap: 10px; 
+    margin-right: 5px;
+}
+
 .currency div {
     background: rgba(0,0,0,0.5);
     backdrop-filter: blur(4px);
@@ -188,8 +209,10 @@ body {
     align-items: center;
     gap: 6px;
 }
-.currency i.fa-coins { color: #ffd54f; }
-.currency i.fa-gem { color: #e040fb; }
+
+.currency i.fa-coins { 
+    color: #ffd54f; 
+}
 
 /* ЦЕНТР */
 .center {
@@ -201,7 +224,19 @@ body {
     z-index: 15;
     pointer-events: none;
 }
-.wave { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+.wave {
+    font-size: 13px;
+    color: #ffd54f;
+    margin-top: 2px;
+    font-weight: bold;
+}
+
+.wave-required {
+    font-size: 10px;
+    color: #aaa;
+    margin-top: 4px;
+}
 
 /* Кнопки этажей сверху */
 .floor-buttons-top {
@@ -264,7 +299,7 @@ body {
     backdrop-filter: blur(8px);
     border-radius: 50px;
     margin: 0;
-    width: 63%;
+    width: 50%;
     min-width: 0;
     flex-shrink: 0;
 }
@@ -456,6 +491,7 @@ body {
     border-top: 1px solid rgba(255, 215, 0, 0.2);
     z-index: 30;
 }
+
 .nav-item {
     display: flex;
     flex-direction: column;
@@ -471,6 +507,7 @@ body {
     padding: 4px 8px;
     border-radius: 20px;
 }
+
 .nav-item i { font-size: 20px; }
 .nav-item.active { color: #ffd966; background: rgba(255,217,102,0.1); }
 .nav-item:active { transform: scale(0.95); }
@@ -489,6 +526,7 @@ body {
     z-index: 25;
     padding: 16px;
 }
+
 .panel.active { display: block; }
 
 /* ИНВЕНТАРЬ */
@@ -535,294 +573,6 @@ body {
 .market-hint { margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 16px; font-size: 11px; color: #aaa; text-align: center; }
 
 /* Боссы */
-.boss-item {
-    transition: 0.2s;
-    cursor: pointer;
-}
-
-.boss-item:hover {
-    transform: translateX(5px);
-}
-
-.boss-fight-btn {
-    transition: 0.2s;
-    cursor: pointer;
-}
-
-.boss-fight-btn:hover {
-    transform: scale(1.05);
-    background: #ffd54f !important;
-    color: #1a1a2e !important;
-}
-
-.boss-fight-btn:active {
-    transform: scale(0.95);
-}
-
-@keyframes bounceIn {
-    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
-    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-}
-
-/* Модальное окно подтверждения */
-#confirmModal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 9999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-}
-
-.confirm-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
-    z-index: 9997;
-}
-
-.confirm-window {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9998;
-    width: 300px;
-    max-width: 85vw;
-    background: linear-gradient(135deg, #1a1d2e, #121520);
-    border: 2px solid #ff5252;
-    border-radius: 20px;
-    box-shadow: 0 0 30px rgba(255, 82, 82, 0.3);
-    animation: confirmBounce 0.3s ease;
-}
-
-.confirm-header {
-    background: linear-gradient(135deg, #ff5252, #cc0000);
-    border-radius: 18px 18px 0 0;
-    padding: 15px;
-    text-align: center;
-    font-size: 16px;
-    font-weight: bold;
-    color: white;
-    letter-spacing: 1px;
-}
-
-.confirm-header i {
-    margin-right: 8px;
-    font-size: 18px;
-}
-
-.confirm-content {
-    padding: 20px;
-    text-align: center;
-    font-size: 13px;
-    color: #ddd;
-    line-height: 1.5;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.confirm-buttons {
-    display: flex;
-    gap: 15px;
-    padding: 15px 20px;
-    justify-content: center;
-}
-
-.confirm-btn {
-    flex: 1;
-    padding: 10px 0;
-    border: none;
-    border-radius: 30px;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-    font-family: inherit;
-}
-
-.confirm-btn.no {
-    background: rgba(255, 255, 255, 0.1);
-    color: #aaa;
-    border: 1px solid #555;
-}
-
-.confirm-btn.no:active {
-    transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.confirm-btn.yes {
-    background: linear-gradient(135deg, #ff5252, #cc0000);
-    color: white;
-    box-shadow: 0 0 10px rgba(255, 82, 82, 0.5);
-}
-
-.confirm-btn.yes:active {
-    transform: scale(0.95);
-    background: linear-gradient(135deg, #cc0000, #990000);
-}
-
-@keyframes confirmBounce {
-    0% {
-        transform: translate(-50%, -50%) scale(0.8);
-        opacity: 0;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-}
-
-/* Подсветка иконок по редкости */
-.common-glow {
-    filter: drop-shadow(0 0 4px #888);
-    transition: 0.2s;
-}
-
-.uncommon-glow {
-    filter: drop-shadow(0 0 6px #4caf50);
-    transition: 0.2s;
-}
-
-.rare-glow {
-    filter: drop-shadow(0 0 8px #3aa0ff);
-    transition: 0.2s;
-}
-
-.epic-glow {
-    filter: drop-shadow(0 0 10px #a64dff);
-    transition: 0.2s;
-}
-
-.legendary-glow {
-    filter: drop-shadow(0 0 12px #ff9f1a);
-    animation: legendaryPulse 1.5s infinite;
-    transition: 0.2s;
-}
-
-.common-glow:hover, .uncommon-glow:hover, .rare-glow:hover, .epic-glow:hover, .legendary-glow:hover {
-    transform: scale(1.1);
-    cursor: pointer;
-}
-
-/* МОДАЛКИ */
-#modalOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 99; display: none; }
-#itemModal { display: none; position: fixed; bottom: 50%; left: 50%; transform: translate(-50%, 50%); width: 260px; background: #1e2530; border-radius: 20px; padding: 16px; z-index: 100; border: 1px solid rgba(255,213,79,0.3); }
-#itemInfo { font-size: 12px; line-height: 1.4; margin-bottom: 12px; }
-.modal-buttons { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.modal-buttons button { flex: 1; padding: 8px; border-radius: 30px; border: none; font-size: 11px; cursor: pointer; min-width: 60px; }
-#equipBtn { background: #ffd54f; color: #1a1a2e; }
-#unequipBtn { background: #ff5252; color: white; }
-#upgradeBtn { background: #ff9f1a; color: #1a1a2e; }
-#sellOnMarketBtn { background: #2196f3; color: white; }
-#sellBtn { background: #ff5252; color: white; }
-#closeModalBtn { background: #333; color: white; }
-
-/* ПОДСВЕТКА */
-img[data-rarity="common"] { filter: drop-shadow(0 0 6px #888); }
-img[data-rarity="uncommon"] { filter: drop-shadow(0 0 8px #4caf50); }
-img[data-rarity="rare"] { filter: drop-shadow(0 0 10px #3aa0ff); }
-img[data-rarity="epic"] { filter: drop-shadow(0 0 12px #a64dff); }
-img[data-rarity="legendary"] { filter: drop-shadow(0 0 14px #ff9f1a); animation: legendaryPulse 1.5s infinite; }
-
-@keyframes legendaryPulse {
-    0% { filter: drop-shadow(0 0 8px #ff9f1a); }
-    50% { filter: drop-shadow(0 0 20px #ff9f1a); }
-    100% { filter: drop-shadow(0 0 8px #ff9f1a); }
-}
-@keyframes fadeOut {
-    0% { opacity: 1; transform: translateY(0); }
-    70% { opacity: 1; }
-    100% { opacity: 0; transform: translateY(-20px); visibility: hidden; }
-}
-
-/* Адаптив */
-@media (max-width: 480px) {
-    .last-message-button {
-        padding: 6px 12px;
-    }
-    
-    .last-message-icon {
-        font-size: 16px;
-    }
-    
-    .last-message-text {
-        font-size: 9px;
-    }
-    
-    .chat-window-popup {
-        bottom: 120px;
-    }
-    
-    .chat-popup-messages {
-        max-height: 35vh;
-        min-height: 150px;
-    }
-    
-    .floor-buttons-top .floor-btn {
-        padding: 4px 14px;
-    }
-    
-    .floor-buttons-top .floor-btn span {
-        font-size: 9px;
-    }
-    
-    .boss-exit-btn {
-        padding: 4px 10px;
-        font-size: 9px;
-        top: 10px;
-        right: 10px;
-    }
-    
-    .collect-coins-btn {
-        padding: 6px 12px;
-        font-size: 10px;
-    }
-    
-    .collect-coins-btn span {
-        padding: 1px 5px;
-        font-size: 9px;
-    }
-    
-    .confirm-window {
-        width: 270px;
-    }
-    
-    .confirm-header {
-        padding: 12px;
-        font-size: 14px;
-    }
-    
-    .confirm-content {
-        padding: 15px;
-        font-size: 12px;
-    }
-}
-.wave {
-    font-size: 13px;
-    color: #ffd54f;
-    margin-top: 2px;
-    font-weight: bold;
-}
-
-.wave-required {
-    font-size: 10px;
-    color: #aaa;
-    margin-top: 4px;
-}
-
-.collect-coins-btn {
-    transition: opacity 0.2s ease;
-}
-
-/* ============= БОССЫ ============= */
 .boss-header {
     text-align: center;
     margin-bottom: 20px;
@@ -1027,8 +777,254 @@ img[data-rarity="legendary"] { filter: drop-shadow(0 0 14px #ff9f1a); animation:
     font-size: 10px;
 }
 
+@keyframes bounceIn {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* Модальное окно подтверждения */
+#confirmModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 9997;
+}
+
+.confirm-window {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9998;
+    width: 300px;
+    max-width: 85vw;
+    background: linear-gradient(135deg, #1a1d2e, #121520);
+    border: 2px solid #ff5252;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(255, 82, 82, 0.3);
+    animation: confirmBounce 0.3s ease;
+}
+
+.confirm-header {
+    background: linear-gradient(135deg, #ff5252, #cc0000);
+    border-radius: 18px 18px 0 0;
+    padding: 15px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    letter-spacing: 1px;
+}
+
+.confirm-header i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+.confirm-content {
+    padding: 20px;
+    text-align: center;
+    font-size: 13px;
+    color: #ddd;
+    line-height: 1.5;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 15px;
+    padding: 15px 20px;
+    justify-content: center;
+}
+
+.confirm-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: inherit;
+}
+
+.confirm-btn.no {
+    background: rgba(255, 255, 255, 0.1);
+    color: #aaa;
+    border: 1px solid #555;
+}
+
+.confirm-btn.no:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.confirm-btn.yes {
+    background: linear-gradient(135deg, #ff5252, #cc0000);
+    color: white;
+    box-shadow: 0 0 10px rgba(255, 82, 82, 0.5);
+}
+
+.confirm-btn.yes:active {
+    transform: scale(0.95);
+    background: linear-gradient(135deg, #cc0000, #990000);
+}
+
+@keyframes confirmBounce {
+    0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Подсветка иконок по редкости */
+.common-glow {
+    filter: drop-shadow(0 0 4px #888);
+    transition: 0.2s;
+}
+
+.uncommon-glow {
+    filter: drop-shadow(0 0 6px #4caf50);
+    transition: 0.2s;
+}
+
+.rare-glow {
+    filter: drop-shadow(0 0 8px #3aa0ff);
+    transition: 0.2s;
+}
+
+.epic-glow {
+    filter: drop-shadow(0 0 10px #a64dff);
+    transition: 0.2s;
+}
+
+.legendary-glow {
+    filter: drop-shadow(0 0 12px #ff9f1a);
+    animation: legendaryPulse 1.5s infinite;
+    transition: 0.2s;
+}
+
+.common-glow:hover, .uncommon-glow:hover, .rare-glow:hover, .epic-glow:hover, .legendary-glow:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+/* МОДАЛКИ */
+#modalOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 99; display: none; }
+#itemModal { display: none; position: fixed; bottom: 50%; left: 50%; transform: translate(-50%, 50%); width: 260px; background: #1e2530; border-radius: 20px; padding: 16px; z-index: 100; border: 1px solid rgba(255,213,79,0.3); }
+#itemInfo { font-size: 12px; line-height: 1.4; margin-bottom: 12px; }
+.modal-buttons { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.modal-buttons button { flex: 1; padding: 8px; border-radius: 30px; border: none; font-size: 11px; cursor: pointer; min-width: 60px; }
+#equipBtn { background: #ffd54f; color: #1a1a2e; }
+#unequipBtn { background: #ff5252; color: white; }
+#upgradeBtn { background: #ff9f1a; color: #1a1a2e; }
+#sellOnMarketBtn { background: #2196f3; color: white; }
+#sellBtn { background: #ff5252; color: white; }
+#closeModalBtn { background: #333; color: white; }
+
+/* ПОДСВЕТКА */
+img[data-rarity="common"] { filter: drop-shadow(0 0 6px #888); }
+img[data-rarity="uncommon"] { filter: drop-shadow(0 0 8px #4caf50); }
+img[data-rarity="rare"] { filter: drop-shadow(0 0 10px #3aa0ff); }
+img[data-rarity="epic"] { filter: drop-shadow(0 0 12px #a64dff); }
+img[data-rarity="legendary"] { filter: drop-shadow(0 0 14px #ff9f1a); animation: legendaryPulse 1.5s infinite; }
+
+@keyframes legendaryPulse {
+    0% { filter: drop-shadow(0 0 8px #ff9f1a); }
+    50% { filter: drop-shadow(0 0 20px #ff9f1a); }
+    100% { filter: drop-shadow(0 0 8px #ff9f1a); }
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; transform: translateY(0); }
+    70% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-20px); visibility: hidden; }
+}
+
 /* Адаптив для телефонов */
 @media (max-width: 480px) {
+    .last-message-button {
+        padding: 6px 12px;
+    }
+    
+    .last-message-icon {
+        font-size: 16px;
+    }
+    
+    .last-message-text {
+        font-size: 9px;
+    }
+    
+    .chat-window-popup {
+        bottom: 120px;
+    }
+    
+    .chat-popup-messages {
+        max-height: 35vh;
+        min-height: 150px;
+    }
+    
+    .floor-buttons-top .floor-btn {
+        padding: 4px 14px;
+    }
+    
+    .floor-buttons-top .floor-btn span {
+        font-size: 9px;
+    }
+    
+    .boss-exit-btn {
+        padding: 4px 10px;
+        font-size: 9px;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .collect-coins-btn {
+        padding: 6px 12px;
+        font-size: 10px;
+    }
+    
+    .collect-coins-btn span {
+        padding: 1px 5px;
+        font-size: 9px;
+    }
+    
+    .confirm-window {
+        width: 270px;
+    }
+    
+    .confirm-header {
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    .confirm-content {
+        padding: 15px;
+        font-size: 12px;
+    }
+    
+    /* Адаптив боссов */
     .boss-list-container {
         max-width: 95%;
     }
@@ -1063,4 +1059,23 @@ img[data-rarity="legendary"] { filter: drop-shadow(0 0 14px #ff9f1a); animation:
         padding: 6px 16px;
         margin-top: 0;
     }
+}
+
+/* Принудительные стили для иконок в слотах */
+.slot i {
+    display: none !important;
+}
+
+.slot img {
+    display: block !important;
+    width: 45px !important;
+    height: 45px !important;
+    object-fit: contain !important;
+    margin-bottom: 5px !important;
+}
+
+.slot span {
+    display: block !important;
+    font-size: 8px !important;
+    color: #777 !important;
 }
