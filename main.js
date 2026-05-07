@@ -7,6 +7,9 @@ let tempCoins = 0;
 let tg = null;
 let tgUser = null;
 
+// URL бэкенда (ТВОЙ ДОМЕН)
+const BACKEND_URL = 'https://zombieserv-production.up.railway.app';
+
 // Функция добавления монет во временное хранилище
 function addTempCoins(amount) {
     tempCoins += amount;
@@ -59,6 +62,9 @@ function collectCoins() {
         btn.style.opacity = '0.5';
         btn.disabled = true;
     }
+    
+    // Сохраняем монеты на сервер
+    saveCoinsToCloud();
 }
 
 function updateLocationUI() {
@@ -90,7 +96,7 @@ function initTelegram() {
         
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             tgUser = tg.initDataUnsafe.user;
-            window.tgUser = tgUser; // Сохраняем в window для доступа из других функций
+            window.tgUser = tgUser;
             
             let playerName = tgUser.first_name || tgUser.username || 'БОЕЦ';
             if (tgUser.last_name) {
@@ -102,7 +108,11 @@ function initTelegram() {
             if (nameSpan) nameSpan.innerText = playerName;
             
             console.log('Telegram пользователь:', tgUser);
-            console.log('photo_url:', tgUser.photo_url);
+            
+            // Загружаем сохранение из облака
+            setTimeout(() => {
+                loadFromCloud();
+            }, 500);
         } else {
             console.log('Данные пользователя не получены');
         }
@@ -139,8 +149,16 @@ window.onGameReady = function() {
     updateCollectButton();
 };
 
-window.onMonsterKilled = function() { updateLocationUI(); };
-window.onDropItem = function() { dropItem(); };
+window.onMonsterKilled = function() { 
+    updateLocationUI(); 
+    saveProgressToCloud();
+};
+
+window.onDropItem = function() { 
+    dropItem(); 
+    saveProgressToCloud();
+};
+
 window.onLocationChanged = function() { updateLocationUI(); };
 
 window.addTempCoins = addTempCoins;
@@ -177,6 +195,8 @@ function setCurrentTab(tab) {
         setTimeout(function() {
             updateCollectButton();
         }, 50);
+    } else {
+        saveProgressToCloud();
     }
 }
 
@@ -185,11 +205,9 @@ window.updateCollectButton = updateCollectButton;
 
 // ============= УПРАВЛЕНИЕ АВАТАРАМИ =============
 
-// Функция для обновления аватаров
 function updateAvatars() {
     console.log('updateAvatars вызвана');
     
-    // Верхний аватар (берём фото из Telegram)
     const topAvatar = document.getElementById('tgAvatar');
     if (topAvatar) {
         if (window.tgUser && window.tgUser.photo_url) {
@@ -201,7 +219,6 @@ function updateAvatars() {
         }
     }
     
-    // Аватар в инвентаре (всегда avatar.png)
     const invAvatar = document.getElementById('playerAvatar');
     if (invAvatar) {
         invAvatar.src = 'avatar.png';
@@ -209,7 +226,197 @@ function updateAvatars() {
     }
 }
 
-// Запускаем инициализацию Telegram и обновление аватаров
+// ============= ОБЛАЧНОЕ СОХРАНЕНИЕ =============
+
+// Сохранение монет на сервер
+async function saveCoinsToCloud() {
+    if (!window.tgUser || !window.tgUser.id) return;
+    
+    try {
+        await fetch(`${BACKEND_URL}/api/coins`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                telegram_id: window.tgUser.id.toString(),
+                coins: window.gameState.coins
+            })
+        });
+        console.log('💰 Монеты сохранены');
+    } catch(e) {
+        console.error('Ошибка сохранения монет:', e);
+    }
+}
+
+// Сохранение всего прогресса (кроме монет)
+async function saveProgressToCloud() {
+    if (!window.tgUser || !window.tgUser.id) return;
+    
+    const saveData = {
+        damage: window.gameState.damage,
+        attackSpeed: window.gameState.attackSpeed,
+        critChance: window.gameState.critChance,
+        critDamage: window.gameState.critDamage,
+        kills: window.gameState.kills,
+        currentFloor: typeof currentFloor !== 'undefined' ? currentFloor : 1,
+        floorMultiplier: typeof floorMultiplier !== 'undefined' ? floorMultiplier : 1,
+        playerLevel: typeof playerLevel !== 'undefined' ? playerLevel : 1,
+        playerExp: typeof playerExp !== 'undefined' ? playerExp : 0,
+        expToNextLevel: typeof expToNextLevel !== 'undefined' ? expToNextLevel : 100,
+        inventory: inventory || [],
+        equipped: equipped || {}
+    };
+    
+    try {
+        await fetch(`${BACKEND_URL}/api/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                telegram_id: window.tgUser.id.toString(),
+                save_data: saveData
+            })
+        });
+        console.log('💾 Прогресс сохранён');
+    } catch(e) {
+        console.error('Ошибка сохранения:', e);
+    }
+}
+
+// Загрузка всего прогресса
+async function loadFromCloud() {
+    if (!window.tgUser || !window.tgUser.id) return false;
+    
+    try {
+        // Загружаем прогресс
+        const response = await fetch(`${BACKEND_URL}/api/load`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                telegram_id: window.tgUser.id.toString()
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.save_data) {
+            const data = result.save_data;
+            
+            // Восстанавливаем данные
+            window.gameState.damage = data.damage || 10;
+            window.gameState.attackSpeed = data.attackSpeed || 1.0;
+            window.gameState.critChance = data.critChance || 0;
+            window.gameState.critDamage = data.critDamage || 1.5;
+            window.gameState.kills = data.kills || 0;
+            
+            if (typeof currentFloor !== 'undefined') currentFloor = data.currentFloor || 1;
+            if (typeof floorMultiplier !== 'undefined') floorMultiplier = data.floorMultiplier || 1;
+            if (typeof playerLevel !== 'undefined') playerLevel = data.playerLevel || 1;
+            if (typeof playerExp !== 'undefined') playerExp = data.playerExp || 0;
+            if (typeof expToNextLevel !== 'undefined') expToNextLevel = data.expToNextLevel || 100;
+            
+            if (data.inventory) inventory = data.inventory;
+            if (data.equipped) equipped = data.equipped;
+            
+            // Обновляем UI
+            if (typeof updateFloorUI === 'function') updateFloorUI();
+            if (typeof updateLevelUI === 'function') updateLevelUI();
+            if (typeof updateStats === 'function') updateStats();
+            if (typeof updateInventoryUI === 'function') updateInventoryUI();
+            if (typeof updateSlots === 'function') updateSlots();
+            if (typeof applyEquipmentStats === 'function') applyEquipmentStats();
+            if (typeof updatePowerDisplay === 'function') updatePowerDisplay();
+            
+            console.log('✅ Загружено из облака');
+            showToast('☁️ Прогресс загружен!', false);
+            return true;
+        }
+        
+        // Загружаем монеты отдельно
+        const coinsResponse = await fetch(`${BACKEND_URL}/api/coins`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                telegram_id: window.tgUser.id.toString()
+            })
+        });
+        
+        const coinsResult = await coinsResponse.json();
+        if (coinsResult.success && coinsResult.coins !== undefined) {
+            window.gameState.coins = coinsResult.coins;
+            const coinsSpan = document.getElementById('uiCoins');
+            if (coinsSpan) coinsSpan.innerText = window.gameState.coins.toFixed(3);
+            console.log('💰 Монеты загружены:', window.gameState.coins);
+        }
+        
+        return true;
+    } catch(e) {
+        console.error('❌ Ошибка загрузки:', e);
+        return false;
+    }
+}
+
+// Сохраняем при экипировке/снятии
+const originalEquipItem = window.equipItem;
+if (originalEquipItem) {
+    window.equipItem = function(item) {
+        originalEquipItem(item);
+        saveProgressToCloud();
+    };
+}
+
+const originalUnequipItem = window.unequipItem;
+if (originalUnequipItem) {
+    window.unequipItem = function(type) {
+        originalUnequipItem(type);
+        saveProgressToCloud();
+    };
+}
+
+// Сохраняем при смене этажа
+const originalNextFloor = window.gameAPI?.nextFloor;
+if (originalNextFloor) {
+    window.gameAPI.nextFloor = function() {
+        originalNextFloor();
+        setTimeout(() => saveProgressToCloud(), 100);
+    };
+}
+
+const originalPrevFloor = window.gameAPI?.prevFloor;
+if (originalPrevFloor) {
+    window.gameAPI.prevFloor = function() {
+        originalPrevFloor();
+        setTimeout(() => saveProgressToCloud(), 100);
+    };
+}
+
+// Автосохранение раз в 2 минуты
+setInterval(() => {
+    if (window.tgUser && window.tgUser.id) {
+        saveProgressToCloud();
+    }
+}, 120000);
+
+// Сохраняем монеты раз в 10 секунд
+setInterval(() => {
+    if (window.tgUser && window.tgUser.id && window.gameState.coins) {
+        saveCoinsToCloud();
+    }
+}, 10000);
+
+// Сохраняем перед закрытием
+window.addEventListener('beforeunload', () => {
+    if (window.tgUser && window.tgUser.id) {
+        saveProgressToCloud();
+        saveCoinsToCloud();
+    }
+});
+
+// Экспортируем функции
+window.updateAvatars = updateAvatars;
+window.saveProgressToCloud = saveProgressToCloud;
+window.saveCoinsToCloud = saveCoinsToCloud;
+window.loadFromCloud = loadFromCloud;
+
+// Запускаем инициализацию Telegram
 document.addEventListener('DOMContentLoaded', () => {
     initTelegram();
 });
@@ -222,6 +429,3 @@ if (originalUpdateInventoryUI) {
         setTimeout(updateAvatars, 50);
     };
 }
-
-// Экспортируем функции
-window.updateAvatars = updateAvatars;
